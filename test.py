@@ -13,10 +13,12 @@ from serpapi import GoogleSearch
 
 from dotenv import load_dotenv
 
+# Load environment variables from a .env file
 load_dotenv()
 
+# Set the page configuration for Streamlit
 st.set_page_config(
-    page_title="OpenCode: PovKet Assistant",
+    page_title="OpenCode Pocket Assistant",
     page_icon="📈",
 )
 
@@ -25,36 +27,28 @@ st.markdown("""
     <style>
     .chat-container {
         overflow-y: auto;
-        max-height: 600px;
-        display: flex;
-        flex-direction: column;
+        max-height: 600px; /* Adjust as needed */
     }
     .user-message {
         background-color: green;
         border-radius: 10px;
         padding: 10px;
-        margin-left: auto;
-        margin-bottom: 5px;
-        align-self: flex-start;
-        width: fit-content;
+        margin: 5px;
+        align-self: flex-end;
         max-width: 70%;
-        word-wrap: break-word;
     }
     .bot-message {
         background-color: gray;
         border-radius: 10px;
         padding: 10px;
-        align-self: flex-end;
-        text-align: left;
-        width: fit-content;
+        margin: 5px;
+        align-self: flex-start;
         max-width: 70%;
-        word-wrap: break-word;
     }
     .sources {
         font-size: 0.8em;
-        color: lightgray;
+        color: gray;
         margin-top: 5px;
-        word-wrap: break-word;
     }
     .stTextArea textarea {
         background-color: #f0f0f0;
@@ -78,7 +72,7 @@ with st.sidebar:
 
     if process_data_clicked:
         docs = []
-        main_placeholder = st.empty()
+        main_placeholder = st.empty()  # create a placeholder on the sidebar
 
         if urls:
             loader = UnstructuredURLLoader(urls=urls)
@@ -86,12 +80,12 @@ with st.sidebar:
             docs.extend(loader.load())
 
         if uploaded_file:
-            with open("temp_pdf.pdf", "wb") as f:
+            with open("temp_pdf.pdf", "wb") as f:  # Save the uploaded file temporarily
                 f.write(uploaded_file.read())
-            loader = PyPDFLoader("temp_pdf.pdf")
+            loader = PyPDFLoader("temp_pdf.pdf")  # Load from the temporary file
             main_placeholder.text("Loading PDF...✅")
             docs.extend(loader.load_and_split())
-            os.remove("temp_pdf.pdf")
+            os.remove("temp_pdf.pdf")  # Remove the temporary file
 
         if docs:
             text_splitter = RecursiveCharacterTextSplitter(
@@ -122,6 +116,7 @@ chat_container = st.container()
 # Input Container
 input_container = st.container()
 
+# Initialize OpenAI language model with specific parameters
 llm = OpenAI(temperature=0.9, max_tokens=500)
 openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -175,9 +170,8 @@ def query_openai_model(query):
 
 def query_gemini(query):
     """Query Gemini API for an answer."""
-    # Ensure you have the 'google-generativeai' library installed: pip install google-generativeai
     import google.generativeai as genai
-    GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY") # Ensure you have this in your .env
+    GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY") # getting Gemini api key
     if not GOOGLE_API_KEY:
         st.error("GEMINI_API_KEY not found in environment variables.")
         return None
@@ -217,7 +211,7 @@ with input_container:
     col1, col2 = st.columns([4, 1])
 
     with col1:
-        query = st.text_input("wassup, how can i be of help➰:", key="text_input")
+        query = st.text_input("Type your question here:", key="text_input")
         if query:
             add_message_to_history(query, is_user=True)
             try:
@@ -262,10 +256,6 @@ with input_container:
                             add_message_to_history("No relevant information found.", is_user=False)
                     else:
                         add_message_to_history(answer, is_user=False)
-            except Exception as e:
-                add_message_to_history(f"An error occurred: {e}", is_user=False)
-            except Exception as e:
-                add_message_to_history(f"An error occurred: {e}", is_user=False)
             except Exception as e:
                 add_message_to_history(f"An error occurred: {e}", is_user=False)
             display_chat_history()
